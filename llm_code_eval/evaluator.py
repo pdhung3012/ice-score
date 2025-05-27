@@ -58,7 +58,7 @@ def process_raw_content(content, aspect):
     # Return the single numeric answer
     return int(ans[0])
 
-def evaluate(problem, output, reference=None, task="code-gen", aspect="usefulness", model="gpt-3.5-turbo", cot=False):
+def evaluate(problem, output, reference=None, task="code-gen", aspect="usefulness", model="gpt-4o", cot=False):
     """
     Evaluates the given problem and output using GPT.
     
@@ -86,14 +86,15 @@ def evaluate(problem, output, reference=None, task="code-gen", aspect="usefulnes
         prompts = prompts.replace("{{PROBLEM}}", problem).replace("{{OUTPUT}}", output).replace("{{REFERENCE}}", reference)
     else:
         prompts = prompts.replace("{{PROBLEM}}", problem).replace("{{OUTPUT}}", output)
-        
-    response = openai.ChatCompletion.create(
+
+    model_openai = openai.chat.completions
+    response = model_openai.create(
             model=model,
             messages=[{"role": "system", "content": prompts}],
             temperature=0,
     )
 
-    raw_output = response["choices"][0]["message"]["content"]
+    raw_output = response.choices[0].message.content
 
     if cot:
         return get_gpt_answer(raw_output, aspect), raw_output
