@@ -100,3 +100,48 @@ def evaluate(problem, output, reference=None, task="code-gen", aspect="usefulnes
         return get_gpt_answer(raw_output, aspect), raw_output
     else:
         return get_gpt_answer(raw_output, aspect)
+
+
+def evaluate_translation(input_source_code, output_translated_code, reference=None, task="code-translation-torch2jax", aspect="usefulness", model="gpt-4o", cot=False):
+    """
+    Evaluates the given problem and output using GPT.
+
+    Args:
+        input_source_code (str): input source code.
+        output_translated_code (str): The translated code.
+        reference (str, optional): The reference solution. Defaults to None.
+        task (str, optional): The task type. Defaults to "code-gen".
+        aspect (str, optional): The evaluation aspect. Defaults to "usefulness".
+        model (str, optional): The GPT model to use. Defaults to "gpt-3.5-turbo".
+        cot (bool, optional): Indicates if step-by-step evaluation is required. Defaults to False.
+
+    Returns:
+        Union[int, Tuple[int, str]]: The evaluation score or a tuple containing the score and step-by-step evaluation.
+    """
+    if reference:
+        prompts = TASK_PROMPTS[task][aspect]["reference-enhanced"]
+    else:
+        prompts = TASK_PROMPTS[task][aspect]["reference-free"]
+
+    if cot:
+        prompts = prompts.replace(" (scores ONLY):", ":\nStep-by-step Evaluation:")
+
+    if reference:
+        prompts = prompts.replace("{{SOURCE_CODE}}", input_source_code).replace("{{TRANSLATED_CODE}}", output_translated_code).replace("{{REFERENCE}}",
+                                                                                                reference)
+    else:
+        prompts = prompts.replace("{{SOURCE_CODE}}", input_source_code).replace("{{TRANSLATED_CODE}}", output_translated_code)
+
+    model_openai = openai.chat.completions
+    response = model_openai.create(
+        model=model,
+        messages=[{"role": "system", "content": prompts}],
+        temperature=0,
+    )
+
+    raw_output = response.choices[0].message.content
+
+    if cot:
+        return get_gpt_answer(raw_output, aspect), raw_output
+    else:
+        return get_gpt_answer(raw_output, aspect)

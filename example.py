@@ -1,4 +1,4 @@
-from llm_code_eval import evaluate
+from llm_code_eval import *
 import os
 import openai
 
@@ -16,8 +16,7 @@ openai.api_key=str_key
 # generated_text = response.choices[0].message.content
 # print(generated_text)
 # exit()
-score = evaluate(problem="",
-                    output="sum = 0\nfor i in range(len(list)):\n\tsum += list[i]\nreturn sum",
-                    task="code-gen", aspect="usefulness", model="gpt-3.5-turbo")
+score = evaluate_translation(input_source_code="", output_translated_code="sum = 0\nfor i in range(len(list)):\n\tsum += list[i]\nreturn sum",
+                    task="code-translation-torch2jax", aspect="usefulness", model="gpt-4o")
 
 print(score)
